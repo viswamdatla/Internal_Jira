@@ -1,0 +1,12 @@
+{
+  "name": "flow",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "http-server . -p 8765 -o flow.html -c-1",
+    "start": "npm run dev"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

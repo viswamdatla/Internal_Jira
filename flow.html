@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLOW — Project Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='24' font-size='24' fill='%23c8f564'>◈</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/flow.css">
+</head>
+<body>
+
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="logo-title">◈ FLOW</div>
+        <div class="logo-sub">PROJECT TRACKER</div>
+      </div>
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="loginUser">Email</label>
+          <input type="email" id="loginUser" autocomplete="email" placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label for="loginPass">Password</label>
+          <input type="password" id="loginPass" autocomplete="current-password">
+        </div>
+        <button type="button" class="btn btn-primary" id="loginSubmit">Sign in</button>
+        <div class="login-error" id="loginError"></div>
+      </form>
+      <div class="demo-creds">
+        <div class="demo-creds-label">Team accounts</div>
+        <table>
+          <thead><tr><th>Email</th><th>Name</th></tr></thead>
+          <tbody id="demoCredsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="appRoot">
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo-block">
+        <div class="logo-title">◈ FLOW</div>
+        <div class="logo-sub">PROJECT TRACKER</div>
+      </div>
+      <nav class="nav-section" id="sidebarNav">
+        <div class="nav-label">Navigation</div>
+        <button type="button" class="nav-item active" data-nav="dashboard" id="navDashboard">
+          <span class="nav-emoji">▣</span>
+          <span class="nav-text">Dashboard</span>
+        </button>
+        <div class="nav-label" style="margin-top:12px">Projects</div>
+        <div id="navProjects"></div>
+      </nav>
+      <div class="session-box" id="sessionBox"></div>
+    </aside>
+
+    <main class="main">
+      <!-- Dashboard -->
+      <section class="view active" id="viewDashboard">
+        <header class="top-bar">
+          <div class="top-bar-left">
+            <h1>Dashboard</h1>
+            <div class="top-bar-sub" id="dashSubtitle"></div>
+          </div>
+          <div class="top-bar-right">
+            <button type="button" class="btn btn-primary" id="btnNewProject">+ New project</button>
+          </div>
+        </header>
+        <div class="dash-body">
+          <div class="stats-row" id="dashStats"></div>
+          <div class="projects-grid" id="projectsGrid"></div>
+        </div>
+      </section>
+
+      <!-- Board -->
+      <section class="view" id="viewBoard">
+        <header class="top-bar">
+          <div class="top-bar-left">
+            <div class="top-bar-title-row">
+              <button type="button" class="btn btn-ghost" id="btnBack">← Back</button>
+              <span class="top-bar-icon" id="boardIcon"></span>
+              <h1 id="boardTitle"></h1>
+            </div>
+            <div class="top-bar-sub" id="boardSubtitle"></div>
+          </div>
+          <div class="top-bar-right">
+            <select id="filterAssignee">
+              <option value="">All members</option>
+            </select>
+            <button type="button" class="btn btn-primary" id="btnNewTicket">+ New ticket</button>
+          </div>
+        </header>
+        <div class="board-stats" id="boardStats"></div>
+        <div class="board-wrap">
+          <div class="board-columns">
+            <div class="column" data-status="todo">
+              <header class="column-header">
+                <span class="status-dot todo"></span>
+                <span class="column-title">To Do</span>
+                <span class="column-count" id="countTodo">0</span>
+              </header>
+              <div class="column-cards" id="colTodo"></div>
+            </div>
+            <div class="column" data-status="prog">
+              <header class="column-header">
+                <span class="status-dot prog"></span>
+                <span class="column-title">In Progress</span>
+                <span class="column-count" id="countProg">0</span>
+              </header>
+              <div class="column-cards" id="colProg"></div>
+            </div>
+            <div class="column" data-status="done">
+              <header class="column-header">
+                <span class="status-dot done"></span>
+                <span class="column-title">Done</span>
+                <span class="column-count" id="countDone">0</span>
+              </header>
+              <div class="column-cards" id="colDone"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Project modal -->
+  <div class="modal-overlay" id="projectModalOverlay">
+    <div class="modal" id="projectModal">
+      <h2>New project</h2>
+      <form id="projectForm">
+        <div class="form-group">
+          <label for="projName">Project Name *</label>
+          <input type="text" id="projName" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="projDesc">Description</label>
+          <input type="text" id="projDesc" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Icon</label>
+          <div class="icon-picker" id="iconPicker"></div>
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <div class="color-picker" id="colorPicker"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="projCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Ticket modal -->
+  <div class="modal-overlay" id="ticketModalOverlay">
+    <div class="modal" id="ticketModal">
+      <h2 id="ticketModalTitle">New ticket</h2>
+      <form id="ticketForm">
+        <div id="ticketViewHint" class="view-only-hint" style="display:none">View only — assigned to another team member. You cannot edit this ticket.</div>
+        <div class="form-group">
+          <label for="ticketTitle">Title *</label>
+          <input type="text" id="ticketTitle" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="ticketDesc">Description</label>
+          <textarea id="ticketDesc"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group" id="ticketAssigneeGroup">
+            <label for="ticketAssignee">Assignee</label>
+            <select id="ticketAssignee"></select>
+            <div id="ticketAssigneeReadonly" class="form-readonly" style="display:none"></div>
+          </div>
+          <div class="form-group">
+            <label for="ticketPriority">Priority</label>
+            <select id="ticketPriority">
+              <option value="high">High</option>
+              <option value="med">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ticketStatus">Status</label>
+          <select id="ticketStatus">
+            <option value="todo">To Do</option>
+            <option value="prog">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="ticketCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="ticketSaveBtn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="supabase/config.js"></script>
+  <script type="module" src="js/flow.js"></script>
+</body>
+</html>
