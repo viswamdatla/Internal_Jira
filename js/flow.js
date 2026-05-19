@@ -70,10 +70,6 @@ function isOwnTicket(ticket) {
   return currentUser && ticket.assignee === currentUser.name;
 }
 
-function canEditTicket(ticket) {
-  return isOwnTicket(ticket);
-}
-
 function showToast(message, type) {
   const container = document.getElementById('toastContainer');
   const el = document.createElement('div');
@@ -115,6 +111,7 @@ async function showApp() {
   document.documentElement.style.setProperty('--user-accent', currentUser.color);
   renderSessionBox();
   populateMemberDropdowns();
+  initPickers();
   try {
     await loadState();
     render();
@@ -138,7 +135,7 @@ async function setCurrentUserFromSession(session) {
     .select('id, name, email, color, bg, initial')
     .eq('id', session.user.id)
     .single();
-  if (error || !profile) throw new Error('Profile not found. Run supabase/seed.sql for your user.');
+  if (error || !profile) throw new Error('Profile not found. Run supabase/sql/02-sync-auth-users.sql.');
   currentUser = {
     id: profile.id,
     name: profile.name,
@@ -355,7 +352,7 @@ function renderSidebar() {
   const container = document.getElementById('navProjects');
   container.innerHTML = state.projects.map(p => `
     <button type="button" class="nav-item nav-project ${currentView === 'board' && currentProjectId === p.id ? 'active' : ''}"
-      data-nav="board" data-project-id="${p.id}">
+      data-project-id="${p.id}">
       <span class="nav-emoji">${esc(p.icon)}</span>
       <span class="nav-text">${esc(p.name)}</span>
     </button>
@@ -589,7 +586,7 @@ function openTicketModal(projectId, ticketId) {
   if (ticketId) {
     const t = project.tickets.find(x => x.id === ticketId);
     if (!t) return;
-    const canEdit = canEditTicket(t);
+    const canEdit = isOwnTicket(t);
     document.getElementById('ticketModalTitle').textContent =
       (canEdit ? 'Edit · ' : 'View · ') + formatTicketId(project, t);
     document.getElementById('ticketTitle').value = t.title;
@@ -635,7 +632,7 @@ async function saveTicket(e) {
   };
   if (editingTicketId) {
     const t = project.tickets.find(x => x.id === editingTicketId);
-    if (!t || !canEditTicket(t)) {
+    if (!t || !isOwnTicket(t)) {
       showToast(`Only ${t ? t.assignee : 'the assignee'} can edit this ticket`, 'error');
       return;
     }
@@ -749,7 +746,6 @@ async function boot() {
       'Add your anon key to supabase/config.js (Dashboard → Settings → API), then hard refresh.';
     return;
   }
-  initPickers();
   try {
     await loadProfiles();
     refreshTeamAccounts();

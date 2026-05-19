@@ -49,7 +49,7 @@
       </div>
       <nav class="nav-section" id="sidebarNav">
         <div class="nav-label">Navigation</div>
-        <button type="button" class="nav-item active" data-nav="dashboard" id="navDashboard">
+        <button type="button" class="nav-item active" id="navDashboard">
           <span class="nav-emoji">▣</span>
           <span class="nav-text">Dashboard</span>
         </button>
@@ -60,7 +60,6 @@
     </aside>
 
     <main class="main">
-      <!-- Dashboard -->
       <section class="view active" id="viewDashboard">
         <header class="top-bar">
           <div class="top-bar-left">
@@ -77,7 +76,6 @@
         </div>
       </section>
 
-      <!-- Board -->
       <section class="view" id="viewBoard">
         <header class="top-bar">
           <div class="top-bar-left">
@@ -131,7 +129,6 @@
 
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Project modal -->
   <div class="modal-overlay" id="projectModalOverlay">
     <div class="modal" id="projectModal">
       <h2>New project</h2>
@@ -160,7 +157,6 @@
     </div>
   </div>
 
-  <!-- Ticket modal -->
   <div class="modal-overlay" id="ticketModalOverlay">
     <div class="modal" id="ticketModal">
       <h2 id="ticketModalTitle">New ticket</h2>
@@ -175,7 +171,7 @@
           <textarea id="ticketDesc"></textarea>
         </div>
         <div class="form-row">
-          <div class="form-group" id="ticketAssigneeGroup">
+          <div class="form-group">
             <label for="ticketAssignee">Assignee</label>
             <select id="ticketAssignee"></select>
             <div id="ticketAssigneeReadonly" class="form-readonly" style="display:none"></div>

@@ -9,10 +9,6 @@
       --cyan: #64c8f5;
       --pink: #f564a0;
       --amber: #ef9f27;
-      --badri: #c8f564;
-      --alex: #64c8f5;
-      --blake: #a78bfa;
-      --casey: #f564a0;
       --sidebar-w: 210px;
       --radius: 6px;
       --transition: 0.15s ease;
@@ -30,7 +26,7 @@
       line-height: 1.5;
     }
 
-    h1, h2, h3, .sans, .stat-num, .proj-name, .ticket-title, .modal h2 {
+    h1, h2, .stat-num, .proj-name, .ticket-title, .modal h2 {
       font-family: 'DM Sans', sans-serif;
     }
 
@@ -123,19 +119,6 @@
       white-space: nowrap;
     }
 
-    .team-section {
-      padding: 14px 10px 18px;
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .team-member {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 5px 8px;
-    }
-
     .avatar {
       width: 24px;
       height: 24px;
@@ -214,11 +197,6 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       background: var(--bg);
-    }
-
-    .column-count-mine {
-      font-size: 10px;
-      color: var(--text-muted);
     }
 
     .form-readonly {
@@ -944,4 +922,4 @@
       justify-content: flex-end;
       gap: 8px;
       margin-top: 18px;
-    }
+    }
