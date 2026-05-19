@@ -1,4 +1,5 @@
 {
   "buildCommand": "npm run build",
+  "outputDirectory": "public",
   "rewrites": [{ "source": "/", "destination": "/flow.html" }]
 }
