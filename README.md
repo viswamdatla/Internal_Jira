@@ -10,4 +10,6 @@ Internal Kanban tracker — static site + [Supabase](https://rnuqzkjeuthbgbjcfyw
 
 ## Vercel
 
-Import repo, no build output override (uses `npm run build`). Add `SUPABASE_URL` + `SUPABASE_ANON_KEY` from `.env.example`. Set Supabase [Site URL](https://supabase.com/dashboard/project/rnuqzkjeuthbgbjcfywx/auth/url-configuration) to your Vercel domain.
+Import repo — **Build Command:** `npm run build`, **Output Directory:** `public` (set in `vercel.json`).
+
+Add environment variables: `SUPABASE_URL` + `SUPABASE_ANON_KEY` (see `.env.example`). Set Supabase [Site URL](https://supabase.com/dashboard/project/rnuqzkjeuthbgbjcfywx/auth/url-configuration) to your Vercel domain, then redeploy.
