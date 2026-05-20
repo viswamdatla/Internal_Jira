@@ -123,6 +123,7 @@ async function showApp() {
   renderSessionBox();
   populateMemberDropdowns();
   initPickers();
+  initTicketImageHandlers();
   try {
     await loadState();
     render();
@@ -249,8 +250,25 @@ function renderTicketImagePreview() {
   }
 }
 
+function normalizeImageFile(file) {
+  if (!file || !file.size) return null;
+  if (file.type && TICKET_IMAGE_TYPES.includes(file.type)) return file;
+  const ext = (file.name || '').split('.').pop()?.toLowerCase();
+  const mime = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp' }[ext];
+  if (mime) return new File([file], file.name || `image.${ext}`, { type: mime });
+  if (!file.type || file.type === 'application/octet-stream') {
+    return new File([file], file.name || 'pasted-image.png', { type: 'image/png' });
+  }
+  return null;
+}
+
 function setTicketImageFromFile(file) {
-  if (!file) return;
+  const normalized = normalizeImageFile(file);
+  if (!normalized) {
+    showToast('Use JPEG, PNG, GIF, or WebP', 'error');
+    return;
+  }
+  file = normalized;
   if (!TICKET_IMAGE_TYPES.includes(file.type)) {
     showToast('Use JPEG, PNG, GIF, or WebP', 'error');
     return;
@@ -308,14 +326,15 @@ function initTicketImageHandlers() {
   const removeBtn = document.getElementById('ticketImageRemove');
   const modal = document.getElementById('ticketModal');
 
-  drop.addEventListener('click', () => {
-    if (!ticketModalReadOnly) input.click();
-  });
-
   input.addEventListener('change', () => {
+    if (ticketModalReadOnly) return;
     const file = input.files?.[0];
     if (file) setTicketImageFromFile(file);
     input.value = '';
+  });
+
+  drop.addEventListener('click', e => {
+    if (ticketModalReadOnly) e.preventDefault();
   });
 
   removeBtn.addEventListener('click', () => {
@@ -338,8 +357,9 @@ function initTicketImageHandlers() {
     if (file) setTicketImageFromFile(file);
   });
 
-  modal.addEventListener('paste', e => {
-    if (ticketModalReadOnly || !document.getElementById('ticketModalOverlay').classList.contains('open')) return;
+  document.addEventListener('paste', e => {
+    const overlay = document.getElementById('ticketModalOverlay');
+    if (!overlay?.classList.contains('open') || ticketModalReadOnly) return;
     const items = e.clipboardData?.items;
     if (!items) return;
     for (const item of items) {
@@ -348,6 +368,7 @@ function initTicketImageHandlers() {
         if (file) {
           e.preventDefault();
           setTicketImageFromFile(file);
+          showToast('Image pasted', 'info');
           break;
         }
       }
@@ -734,6 +755,7 @@ function openTicketModal(projectId, ticketId) {
   if (!currentUser || !projectId) return;
   const project = getProject(projectId);
   if (!project) return;
+  resetTicketImageState();
   editingTicketId = ticketId || null;
   const titleInput = document.getElementById('ticketTitle');
   titleInput.classList.remove('error');
@@ -747,6 +769,7 @@ function openTicketModal(projectId, ticketId) {
     document.getElementById('ticketDesc').value = t.desc || '';
     document.getElementById('ticketPriority').value = t.priority;
     document.getElementById('ticketStatus').value = t.status;
+    existingTicketImageUrl = t.imageUrl || null;
     setTicketModalMode(canEdit ? 'edit' : 'view', t);
   } else {
     document.getElementById('ticketModalTitle').textContent = 'New ticket';
@@ -765,6 +788,7 @@ function closeTicketModal() {
   document.getElementById('ticketModalOverlay').classList.remove('open');
   editingTicketId = null;
   ticketModalReadOnly = false;
+  resetTicketImageState();
   if (currentUser) setTicketModalMode('new');
 }
 
@@ -792,6 +816,14 @@ async function saveTicket(e) {
       return;
     }
     if (payload.assignee_name === undefined) delete payload.assignee_name;
+    if (pendingTicketImage?.file || removeTicketImage) {
+      try {
+        payload.image_url = await resolveTicketImageUrl(projectId, editingTicketId, t.imageUrl);
+      } catch (imgErr) {
+        showToast(imgErr.message || 'Image upload failed', 'error');
+        return;
+      }
+    }
     const { error } = await supabase.from('tickets').update(payload).eq('id', editingTicketId);
     if (error) { showToast(error.message, 'error'); return; }
     closeTicketModal();
@@ -799,7 +831,7 @@ async function saveTicket(e) {
   } else {
     if (!MEMBERS.includes(payload.assignee_name)) payload.assignee_name = currentUser.name;
     const ticketNum = await nextTicketNumber(projectId);
-    const { error } = await supabase.from('tickets').insert({
+    const { data: created, error } = await supabase.from('tickets').insert({
       project_id: projectId,
       ticket_number: ticketNum,
       title: payload.title,
@@ -807,8 +839,19 @@ async function saveTicket(e) {
       assignee_name: payload.assignee_name,
       priority: payload.priority,
       status: payload.status,
-    });
+    }).select('id').single();
     if (error) { showToast(error.message, 'error'); return; }
+    if (pendingTicketImage?.file) {
+      try {
+        const image_url = await resolveTicketImageUrl(projectId, created.id, null);
+        if (image_url) {
+          await supabase.from('tickets').update({ image_url }).eq('id', created.id);
+        }
+      } catch (imgErr) {
+        showToast(imgErr.message || 'Image upload failed', 'error');
+        return;
+      }
+    }
     closeTicketModal();
     showToast('Ticket created', 'info');
   }
@@ -915,5 +958,6 @@ async function boot() {
   }
 }
 
+initTicketImageHandlers();
 boot();
 

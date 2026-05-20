@@ -930,6 +930,7 @@
     }
 
     .ticket-image-drop {
+      display: block;
       border: 1px dashed var(--border);
       border-radius: var(--radius);
       padding: 14px 12px;
@@ -937,6 +938,17 @@
       cursor: pointer;
       background: var(--bg);
       transition: border-color var(--transition), background var(--transition);
+    }
+
+    .ticket-image-drop input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
     }
 
     .ticket-image-drop:hover,
@@ -985,6 +997,10 @@
     #ticketImageGroup.readonly .ticket-image-drop,
     #ticketImageGroup.readonly #ticketImageRemove {
       display: none;
+    }
+
+    #ticketImageGroup.readonly .ticket-image-preview:not(.hidden) {
+      display: block;
     }
 
     .ticket-card-thumb {
