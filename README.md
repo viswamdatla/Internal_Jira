@@ -5,7 +5,7 @@ Internal Kanban tracker — static site + [Supabase](https://rnuqzkjeuthbgbjcfyw
 ## Setup
 
 1. Copy `.env.example` → `.env`, add [anon key](https://supabase.com/dashboard/project/rnuqzkjeuthbgbjcfywx/settings/api).
-2. SQL Editor: `supabase/sql/01-schema.sql` → add users in [Auth](https://supabase.com/dashboard/project/rnuqzkjeuthbgbjcfywx/auth/users) → `supabase/sql/02-sync-auth-users.sql`.
+2. SQL Editor: `01-schema.sql` → [Auth users](https://supabase.com/dashboard/project/rnuqzkjeuthbgbjcfywx/auth/users) → `02-sync-auth-users.sql` → `03-ticket-images.sql` (task photos).
 3. `npm install && npm run dev` → http://127.0.0.1:8765/flow.html
 
 ## Vercel

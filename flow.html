@@ -185,6 +185,17 @@
             </select>
           </div>
         </div>
+        <div class="form-group" id="ticketImageGroup">
+          <label>Photo <span class="label-hint">paste or upload</span></label>
+          <div id="ticketImageDrop" class="ticket-image-drop" tabindex="0">
+            <span class="ticket-image-hint">Click to upload, or paste an image (Ctrl+V)</span>
+            <input type="file" id="ticketImageInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+          </div>
+          <div id="ticketImagePreview" class="ticket-image-preview hidden">
+            <img id="ticketImageImg" alt="Ticket attachment preview">
+            <button type="button" class="btn btn-ghost btn-sm" id="ticketImageRemove">Remove photo</button>
+          </div>
+        </div>
         <div class="form-group">
           <label for="ticketStatus">Status</label>
           <select id="ticketStatus">

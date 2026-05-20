@@ -917,6 +917,101 @@
       transform: scale(1.12);
     }
 
+    .label-hint {
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text-muted);
+    }
+
+    .btn-sm {
+      font-size: 10px;
+      padding: 4px 10px;
+    }
+
+    .ticket-image-drop {
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 14px 12px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg);
+      transition: border-color var(--transition), background var(--transition);
+    }
+
+    .ticket-image-drop:hover,
+    .ticket-image-drop:focus {
+      border-color: var(--lime);
+      outline: none;
+    }
+
+    .ticket-image-drop.hidden {
+      display: none;
+    }
+
+    .ticket-image-drop.dragover {
+      border-color: var(--cyan);
+      background: rgba(100, 200, 245, 0.06);
+    }
+
+    .ticket-image-hint {
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .ticket-image-preview {
+      margin-top: 10px;
+    }
+
+    .ticket-image-preview.hidden {
+      display: none;
+    }
+
+    .ticket-image-preview img {
+      display: block;
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      object-fit: contain;
+      background: var(--bg);
+    }
+
+    .ticket-image-preview .btn {
+      margin-top: 8px;
+    }
+
+    #ticketImageGroup.readonly .ticket-image-drop,
+    #ticketImageGroup.readonly #ticketImageRemove {
+      display: none;
+    }
+
+    .ticket-card-thumb {
+      margin: 6px 0 4px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      max-height: 72px;
+    }
+
+    .ticket-card-thumb img {
+      display: block;
+      width: 100%;
+      height: 72px;
+      object-fit: cover;
+    }
+
+    .ticket-modal-image {
+      margin-bottom: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      max-width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      background: var(--bg);
+    }
+
     .modal-actions {
       display: flex;
       justify-content: flex-end;

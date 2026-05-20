@@ -47,6 +47,17 @@ let selectedIcon = ICONS[0];
 let selectedColor = COLORS[0];
 let ticketModalReadOnly = false;
 let loginFormBound = false;
+let ticketImageHandlersBound = false;
+
+const TICKET_IMAGE_BUCKET = 'ticket-images';
+const TICKET_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const TICKET_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+/** @type {{ file: File, previewUrl: string } | null} */
+let pendingTicketImage = null;
+/** @type {string | null} */
+let existingTicketImageUrl = null;
+let removeTicketImage = false;
 
 function esc(str) {
   if (str == null) return '';
@@ -200,7 +211,148 @@ function mapTicket(row) {
     assignee: row.assignee_name,
     priority: row.priority,
     status: row.status,
+    imageUrl: row.image_url || null,
   };
+}
+
+function storagePathFromPublicUrl(url) {
+  if (!url) return null;
+  const marker = `/${TICKET_IMAGE_BUCKET}/`;
+  const i = url.indexOf(marker);
+  return i >= 0 ? decodeURIComponent(url.slice(i + marker.length)) : null;
+}
+
+function extFromMime(mime) {
+  return ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp' })[mime] || 'jpg';
+}
+
+function resetTicketImageState() {
+  if (pendingTicketImage?.previewUrl) URL.revokeObjectURL(pendingTicketImage.previewUrl);
+  pendingTicketImage = null;
+  existingTicketImageUrl = null;
+  removeTicketImage = false;
+}
+
+function renderTicketImagePreview() {
+  const drop = document.getElementById('ticketImageDrop');
+  const preview = document.getElementById('ticketImagePreview');
+  const img = document.getElementById('ticketImageImg');
+  const url = pendingTicketImage?.previewUrl || (!removeTicketImage && existingTicketImageUrl) || null;
+  if (url) {
+    img.src = url;
+    preview.classList.remove('hidden');
+    drop.classList.add('hidden');
+  } else {
+    img.removeAttribute('src');
+    preview.classList.add('hidden');
+    drop.classList.remove('hidden');
+  }
+}
+
+function setTicketImageFromFile(file) {
+  if (!file) return;
+  if (!TICKET_IMAGE_TYPES.includes(file.type)) {
+    showToast('Use JPEG, PNG, GIF, or WebP', 'error');
+    return;
+  }
+  if (file.size > TICKET_IMAGE_MAX_BYTES) {
+    showToast('Image must be under 5 MB', 'error');
+    return;
+  }
+  if (pendingTicketImage?.previewUrl) URL.revokeObjectURL(pendingTicketImage.previewUrl);
+  pendingTicketImage = { file, previewUrl: URL.createObjectURL(file) };
+  removeTicketImage = false;
+  renderTicketImagePreview();
+}
+
+function setTicketImageUIReadonly(readonly) {
+  const group = document.getElementById('ticketImageGroup');
+  if (group) group.classList.toggle('readonly', readonly);
+}
+
+async function uploadTicketImage(projectId, ticketId, file) {
+  const path = `${projectId}/${ticketId}/${Date.now()}.${extFromMime(file.type)}`;
+  const { error } = await supabase.storage.from(TICKET_IMAGE_BUCKET).upload(path, file, {
+    upsert: true,
+    contentType: file.type,
+  });
+  if (error) throw error;
+  const { data } = supabase.storage.from(TICKET_IMAGE_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+async function deleteStorageImage(publicUrl) {
+  const path = storagePathFromPublicUrl(publicUrl);
+  if (!path) return;
+  await supabase.storage.from(TICKET_IMAGE_BUCKET).remove([path]);
+}
+
+async function resolveTicketImageUrl(projectId, ticketId, previousUrl) {
+  if (removeTicketImage) {
+    if (previousUrl) await deleteStorageImage(previousUrl);
+    return null;
+  }
+  if (pendingTicketImage?.file) {
+    if (previousUrl) await deleteStorageImage(previousUrl);
+    return uploadTicketImage(projectId, ticketId, pendingTicketImage.file);
+  }
+  return previousUrl || null;
+}
+
+function initTicketImageHandlers() {
+  if (ticketImageHandlersBound) return;
+  ticketImageHandlersBound = true;
+
+  const drop = document.getElementById('ticketImageDrop');
+  const input = document.getElementById('ticketImageInput');
+  const removeBtn = document.getElementById('ticketImageRemove');
+  const modal = document.getElementById('ticketModal');
+
+  drop.addEventListener('click', () => {
+    if (!ticketModalReadOnly) input.click();
+  });
+
+  input.addEventListener('change', () => {
+    const file = input.files?.[0];
+    if (file) setTicketImageFromFile(file);
+    input.value = '';
+  });
+
+  removeBtn.addEventListener('click', () => {
+    if (pendingTicketImage?.previewUrl) URL.revokeObjectURL(pendingTicketImage.previewUrl);
+    pendingTicketImage = null;
+    removeTicketImage = true;
+    renderTicketImagePreview();
+  });
+
+  drop.addEventListener('dragover', e => {
+    e.preventDefault();
+    if (!ticketModalReadOnly) drop.classList.add('dragover');
+  });
+  drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault();
+    drop.classList.remove('dragover');
+    if (ticketModalReadOnly) return;
+    const file = e.dataTransfer?.files?.[0];
+    if (file) setTicketImageFromFile(file);
+  });
+
+  modal.addEventListener('paste', e => {
+    if (ticketModalReadOnly || !document.getElementById('ticketModalOverlay').classList.contains('open')) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault();
+          setTicketImageFromFile(file);
+          break;
+        }
+      }
+    }
+  });
 }
 
 function mapProject(row, tickets) {
@@ -288,6 +440,7 @@ function setTicketModalMode(mode, ticket) {
   descInput.readOnly = readonly;
   prioritySel.disabled = readonly;
   statusSel.disabled = readonly;
+  setTicketImageUIReadonly(readonly);
   if (mode === 'view' && ticket) setTicketAssigneeField('view', ticket.assignee);
   else if (mode === 'new') setTicketAssigneeField('new', currentUser.name);
   else if (mode === 'edit' && ticket) setTicketAssigneeField('edit-own', ticket.assignee);
@@ -455,6 +608,7 @@ function buildTicketCard(project, ticket) {
     ${own ? '<button type="button" class="ticket-delete" aria-label="Delete">✕</button>' : ''}
     <div class="ticket-id">${esc(formatTicketId(project, ticket))}</div>
     <div class="ticket-title">${esc(ticket.title)}</div>
+    ${ticket.imageUrl ? `<div class="ticket-card-thumb"><img src="${esc(ticket.imageUrl)}" alt=""></div>` : ''},
     ${ticket.desc ? `<div class="ticket-desc">${esc(ticket.desc)}</div>` : ''}
     <div class="ticket-footer">
       <span class="priority-badge priority-${esc(ticket.priority)}">${esc(priorityLabel(ticket.priority))}</span>
@@ -601,6 +755,7 @@ function openTicketModal(projectId, ticketId) {
     document.getElementById('ticketStatus').value = 'todo';
     setTicketModalMode('new');
   }
+  renderTicketImagePreview();
   document.getElementById('ticketModalOverlay').classList.add('open');
   document.getElementById('ticketModalOverlay').dataset.projectId = projectId;
   if (!ticketModalReadOnly) setTimeout(() => titleInput.focus(), 40);
