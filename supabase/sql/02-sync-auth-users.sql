@@ -8,6 +8,7 @@
 --   • Optional User Metadata: {"name": "Viswam"}  (otherwise name comes from email)
 --
 -- Safe to re-run whenever you add new users.
+-- Requires flow_display_name + flow_profile_colors (run 01-schema.sql or 06-fix-login.sql first).
 
 -- Confirm anyone still waiting on email verification
 update auth.users
@@ -25,7 +26,7 @@ select
   pal.bg,
   upper(left(public.flow_display_name(u.email, u.raw_user_meta_data), 1))
 from auth.users u
-cross join lateral public.flow_profile_colors(abs(hashtext(u.id::text)) % 6) pal
+cross join lateral public.flow_profile_colors((abs(hashtext(u.id::text)) % 6)::int) pal
 on conflict (id) do update set
   name = excluded.name,
   email = excluded.email,

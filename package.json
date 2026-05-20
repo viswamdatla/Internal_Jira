@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "dev": "node scripts/build.mjs && http-server . -p 8765 -o flow.html -c-1",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "test": "node js/flow-permissions.test.mjs && node js/flow-assignment.test.mjs"
   },
   "devDependencies": {
     "http-server": "^14.1.1"

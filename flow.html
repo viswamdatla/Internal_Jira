@@ -158,59 +158,118 @@
   </div>
 
   <div class="modal-overlay" id="ticketModalOverlay">
-    <div class="modal" id="ticketModal">
-      <h2 id="ticketModalTitle">New ticket</h2>
-      <form id="ticketForm">
-        <div id="ticketViewHint" class="view-only-hint" style="display:none">View only — assigned to another team member. You cannot edit this ticket.</div>
-        <div class="form-group">
-          <label for="ticketTitle">Title *</label>
-          <input type="text" id="ticketTitle" autocomplete="off">
-        </div>
-        <div class="form-group">
-          <label for="ticketDesc">Description</label>
-          <textarea id="ticketDesc"></textarea>
-        </div>
-        <div class="form-row">
+    <div class="modal ticket-modal" id="ticketModal">
+      <header class="ticket-modal-header">
+        <h2 id="ticketModalTitle">New ticket</h2>
+      </header>
+      <form id="ticketForm" class="ticket-form">
+        <div id="ticketViewHint" class="view-only-hint" style="display:none">View only — you can read this ticket but cannot edit, move, or change status.</div>
+
+        <section class="ticket-form-section">
           <div class="form-group">
-            <label for="ticketAssignee">Assignee</label>
-            <select id="ticketAssignee"></select>
-            <div id="ticketAssigneeReadonly" class="form-readonly" style="display:none"></div>
+            <label for="ticketTitle">Title <span class="label-required">*</span></label>
+            <input type="text" id="ticketTitle" autocomplete="off" placeholder="What needs to be done?">
           </div>
           <div class="form-group">
-            <label for="ticketPriority">Priority</label>
-            <select id="ticketPriority">
-              <option value="high">High</option>
-              <option value="med">Medium</option>
-              <option value="low">Low</option>
-            </select>
+            <label for="ticketDesc">Description</label>
+            <textarea id="ticketDesc" placeholder="Add context, links, or acceptance criteria…" rows="4"></textarea>
           </div>
-        </div>
-        <div class="form-group" id="ticketImageGroup">
-          <label>Photo <span class="label-hint">paste or upload</span></label>
-          <label id="ticketImageDrop" class="ticket-image-drop" for="ticketImageInput" tabindex="0">
-            <span class="ticket-image-hint">Click to upload, or paste an image (Ctrl+V)</span>
-            <input type="file" id="ticketImageInput" accept="image/jpeg,image/png,image/gif,image/webp">
-          </label>
-          <div id="ticketImagePreview" class="ticket-image-preview hidden">
-            <img id="ticketImageImg" alt="Ticket attachment preview">
-            <button type="button" class="btn btn-ghost btn-sm" id="ticketImageRemove">Remove photo</button>
+        </section>
+
+        <section class="ticket-form-section">
+          <p class="section-label">Assignment</p>
+          <div class="form-row ticket-assignment-row">
+            <div class="form-group">
+              <label for="ticketAssignedBy">Assigned By</label>
+              <div id="ticketAssignedBy" class="form-readonly form-field-readonly" aria-readonly="true" tabindex="-1">—</div>
+            </div>
+            <div class="form-group">
+              <label for="ticketAssignee">Assigned To</label>
+              <select id="ticketAssignee" aria-label="Assigned to"></select>
+              <div id="ticketAssigneeReadonly" class="form-readonly form-field-readonly" style="display:none" aria-readonly="true"></div>
+            </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label for="ticketStatus">Status</label>
-          <select id="ticketStatus">
-            <option value="todo">To Do</option>
-            <option value="prog">In Progress</option>
-            <option value="done">Done</option>
-          </select>
-        </div>
-        <div class="modal-actions">
+        </section>
+
+        <section class="ticket-form-section ticket-form-section-attachments" id="ticketImageGroup">
+          <div class="section-label-row">
+            <p class="section-label">Attachments</p>
+            <span id="ticketImageCount" class="attachment-count"></span>
+          </div>
+          <div id="ticketImageGallery" class="ticket-image-gallery empty" aria-live="polite"></div>
+          <p id="ticketImageEmpty" class="ticket-image-empty">No attachments yet.</p>
+          <div id="ticketImageUpload">
+            <div class="ticket-upload-progress hidden" id="ticketUploadProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="ticket-upload-progress-bar" id="ticketUploadProgressBar"></div>
+            </div>
+            <label id="ticketImageDrop" class="ticket-image-drop" for="ticketImageInput" tabindex="0">
+              <span class="ticket-image-drop-icon" aria-hidden="true">↑</span>
+              <span class="ticket-image-hint"><strong>Click to upload</strong> or drag & drop</span>
+              <span class="ticket-image-hint-sub">PNG, JPG, GIF, WebP · max 5 MB each · paste with Ctrl+V</span>
+              <input type="file" id="ticketImageInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple>
+            </label>
+            <div id="ticketImagePendingList" class="ticket-image-pending-list empty"></div>
+          </div>
+        </section>
+
+        <section class="ticket-form-section">
+          <p class="section-label">Workflow</p>
+          <div class="form-row ticket-workflow-row">
+            <div class="form-group">
+              <label for="ticketPriority">Priority</label>
+              <select id="ticketPriority">
+                <option value="high">High</option>
+                <option value="med">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ticketStatus">Status</label>
+              <select id="ticketStatus">
+                <option value="todo">To Do</option>
+                <option value="prog">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <footer class="modal-actions ticket-modal-actions">
           <button type="button" class="btn btn-ghost" id="ticketCancel">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="ticketSaveBtn">Save</button>
-        </div>
+          <button type="submit" class="btn btn-primary" id="ticketSaveBtn">Save ticket</button>
+        </footer>
       </form>
     </div>
   </div>
+
+    <div class="modal-overlay attachment-lightbox-overlay" id="imageLightboxOverlay" aria-hidden="true">
+    <div class="image-lightbox" id="imageLightboxDialog" role="dialog" aria-modal="true" aria-label="Attachment preview" tabindex="-1">
+      <div class="image-lightbox-toolbar">
+        <div class="image-lightbox-toolbar-left">
+          <span class="image-lightbox-filename" id="imageLightboxFilename">attachment</span>
+          <span class="image-lightbox-meta" id="imageLightboxMeta"></span>
+        </div>
+        <div class="image-lightbox-toolbar-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="imageLightboxOpenTab" title="Open in new tab">Open</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="imageLightboxDownload" title="Download">Download</button>
+          <button type="button" class="image-lightbox-close" id="imageLightboxClose" aria-label="Close preview">✕</button>
+        </div>
+      </div>
+      <div class="image-lightbox-stage" id="imageLightboxStage">
+        <div class="image-lightbox-loading" id="imageLightboxLoading" aria-live="polite">Loading…</div>
+        <p class="image-lightbox-error hidden" id="imageLightboxError">Could not load this file.</p>
+        <img id="imageLightboxImg" class="hidden" alt="">
+        <iframe id="imageLightboxPdf" class="hidden" title="PDF preview"></iframe>
+        <div class="image-lightbox-file-fallback hidden" id="imageLightboxFileFallback">
+          <p>Preview not available for this file type.</p>
+          <button type="button" class="btn btn-primary btn-sm" id="imageLightboxFileOpen">Open file</button>
+        </div>
+      </div>
+      <button type="button" class="image-lightbox-nav image-lightbox-prev" id="imageLightboxPrev" aria-label="Previous">‹</button>
+      <button type="button" class="image-lightbox-nav image-lightbox-next" id="imageLightboxNext" aria-label="Next">›</button>
+    </div>
+  </div>
+
   <script src="supabase/config.js"></script>
   <script type="module" src="js/flow.js"></script>
 </body>
