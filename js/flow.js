@@ -436,6 +436,7 @@ function mapTicket(row) {
     assignedByName: row.assigned_by_name || null,
     assignedAt: row.assigned_at || null,
     updatedAt: row.updated_at || null,
+    createdAt: row.created_at || null,
     priority: row.priority,
     status: row.status,
     imageUrls,
@@ -1395,6 +1396,22 @@ function renderDashboard() {
   document.getElementById('addProjCard').addEventListener('click', openProjectModal);
 }
 
+/** Done column: newest finished at top. Other columns: ticket number ascending. */
+function sortTicketsForColumn(tickets, status) {
+  const list = [...tickets];
+  if (status === 'done') {
+    list.sort((a, b) => {
+      const ta = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const tb = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      if (tb !== ta) return tb - ta;
+      return (b.ticketNum || 0) - (a.ticketNum || 0);
+    });
+    return list;
+  }
+  list.sort((a, b) => (a.ticketNum || 0) - (b.ticketNum || 0));
+  return list;
+}
+
 function renderBoard() {
   const project = getProject(currentProjectId);
   if (!project) { navigate('dashboard'); return; }
@@ -1417,7 +1434,7 @@ function renderBoard() {
   const countIds = { todo: 'countTodo', prog: 'countProg', done: 'countDone' };
   STATUSES.forEach(s => { cols[s].innerHTML = ''; });
   STATUSES.forEach(status => {
-    const inCol = filtered.filter(t => t.status === status);
+    const inCol = sortTicketsForColumn(filtered.filter(t => t.status === status), status);
     const mine = inCol.filter(t => isAssignee(t)).length;
     const total = inCol.length;
     document.getElementById(countIds[status]).textContent = total ? `${mine} / ${total}` : '0';
